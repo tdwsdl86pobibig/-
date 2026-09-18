@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이번 생은 감독이다</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#10131a;color:#f5f7fb}
+button,input,select{font:inherit}button{cursor:pointer;border:0}
+.wrap{max-width:980px;margin:auto;padding:20px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+h1{margin:0;font-size:28px}.sub{color:#9ea7b7}.panel{background:#191e28;border:1px solid #2c3442;border-radius:16px;padding:18px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.three{grid-template-columns:repeat(3,1fr)}
+label{display:block;color:#aeb7c7;font-size:13px;margin-bottom:6px}
+input,select{width:100%;padding:11px;border-radius:10px;border:1px solid #374151;background:#0f131a;color:white}
+.btn{padding:11px 15px;border-radius:10px;background:#2e6cff;color:#fff;font-weight:700}.btn.secondary{background:#303846}.btn.danger{background:#a92e3d}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.stat{padding:13px;border-radius:12px;background:#11151d;border:1px solid #2a3140}.stat b{font-size:23px}.muted{color:#929bad;font-size:13px}
+.bar{height:8px;background:#303642;border-radius:8px;overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;background:#4d83ff}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.cards .stat{text-align:center}
+.notice{padding:13px;border-radius:12px;background:#202634;margin-top:10px;line-height:1.55}
+.log{max-height:230px;overflow:auto}.log div{padding:8px 0;border-bottom:1px solid #29303b;font-size:14px}
+.hidden{display:none!important}.tag{display:inline-block;padding:4px 8px;border-radius:99px;background:#273247;color:#bcd0ff;font-size:12px;margin:2px}
+.title{font-size:20px;font-weight:800;margin-bottom:10px}.big{font-size:34px;font-weight:900}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:9px;border-bottom:1px solid #2b323e}th{color:#9fa9b9}
+@media(max-width:650px){.grid,.three,.cards{grid-template-columns:1fr 1fr}.top{align-items:flex-start;gap:10px;flex-direction:column}h1{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div><h1>⚾ 이번 생은 감독이다</h1><div class="sub">짧게 즐기는 야구 감독 커리어 시뮬레이션</div></div><div id="yearBox" class="tag hidden"></div></div>
+
+  <section id="create" class="panel">
+    <div class="title">1. 감독 생성</div>
+    <div class="grid">
+      <div><label>감독 이름</label><input id="name" value="김감독" maxlength="12"></div>
+      <div><label>출신 구단</label><select id="club"><option>한화 이글스</option><option>두산 베어스</option><option>LG 트윈스</option><option>롯데 자이언츠</option><option>삼성 라이온즈</option><option>SSG 랜더스</option><option>키움 히어로즈</option><option>KIA 타이거즈</option><option>KT 위즈</option><option>NC 다이노스</option></select></div>
+      <div><label>선수 시절 포지션</label><select id="pos"><option>투수</option><option>포수</option><option>내야수</option><option>외야수</option></select></div>
+      <div><label>등번호</label><input id="num" type="number" min="0" max="99" value="17"></div>
+    </div>
+    <div class="notice">은퇴 당시의 선수 성적과 업적은 랜덤으로 결정됩니다. 성적이 좋을수록 좋은 감독 제안이 들어올 가능성이 높아집니다.</div>
+    <div class="actions"><button class="btn" id="createBtn">선수 시절 생성</button></div>
+  </section>
+
+  <section id="careerStart" class="panel hidden">
+    <div class="title">선수 시절 기록</div>
+    <div id="playerRecord"></div>
+    <div id="offers" class="notice"></div>
+    <div class="actions" id="offerBtns"></div>
+  </section>
+
+  <section id="game" class="hidden">
+    <div class="panel">
+      <div class="title" id="clubTitle"></div>
+      <div class="cards">
+        <div class="stat"><div class="muted">시즌</div><b id="season">1</b></div>
+        <div class="stat"><div class="muted">승-패</div><b id="record">0-0</b></div>
+        <div class="stat"><div class="muted">팬 신뢰</div><b id="fan">70</b></div>
+        <div class="stat"><div class="muted">프런트</div><b id="front">70</b></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="title">선수단</div>
+      <div id="roster"></div>
+      <div class="actions"><button class="btn secondary" id="rookieBtn">신인 영입 협의</button><button class="btn secondary" id="tradeBtn">트레이드 문의</button><button class="btn secondary" id="restBtn">선수단 휴식</button></div>
+      <div id="managementMsg"></div>
+    </div>
+
+    <div class="panel">
+      <div class="title">시즌 진행</div>
+      <div class="notice" id="seasonInfo"></div>
+      <div class="actions"><button class="btn" id="nextBtn">다음 경기</button><button class="btn secondary" id="eventBtn">랜덤 이벤트</button><button class="btn secondary" id="overseasBtn">해외연수</button></div>
+    </div>
+
+    <div class="panel">
+      <div class="title">최근 기록</div>
+      <div id="logs" class="log"></div>
+    </div>
+  </section>
+
+  <section id="match" class="panel hidden">
+    <div class="title">⚾ GAME DAY</div>
+    <div id="matchScore" class="big"></div>
+    <div class="notice" id="situation"></div>
+    <div class="actions" id="matchActions"></div>
+  </section>
+
+  <section id="finish" class="panel hidden">
+    <div class="title">🏆 감독 커리어</div>
+    <div id="career"></div>
+    <div class="actions"><button class="btn" id="againBtn">새 감독으로 다시 시작</button></div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  let S=null, match=null;
+  const names=["김민준","이도윤","박현우","최준호","정우진","강태양","윤지훈","서준혁","한도현","임건우","조현민","오세진"];
+  const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const pick=a=>a[rand(0,a.length-1)];
+  const clamp=(n,a=0,b=100)=>Math.max(a,Math.min(b,n));
+  function log(x){$("logs").innerHTML="<div>"+x+"</div>"+$("logs").innerHTML}
+  function hideAll(){["create","careerStart","game","match","finish"].forEach(x=>$(x).classList.add("hidden"))}
+  function render(){
+    $("clubTitle").textContent=`${S.club} · ${S.name} 감독`;
+    $("season").textContent=S.season;
+    $("record").textContent=`${S.wins}-${S.losses}`;
+    $("fan").textContent=S.fan;
+    $("front").textContent=S.front;
+    $("yearBox").textContent=`${S.season}시즌`;
+    $("roster").innerHTML="<table><tr><th>선수</th><th>포지션</th><th>능력</th><th>컨디션</th></tr>"+S.roster.map((p,i)=>`<tr><td>${p.name}</td><td>${p.pos}</td><td>${p.ovr}</td><td>${p.cond}</td></tr>`).join("")+"</table>";
+    $("seasonInfo").textContent=`현재 ${S.season}시즌. 주요 경기만 직접 개입하고 나머지 경기는 압축 진행됩니다.`;
+  }
+  $("createBtn").onclick=()=>{
+    const n=$("name").value.trim()||"김감독";
+    const score=rand(45,99), avg=(score/100*0.38).toFixed(3);
+    const awards=[];
+    if(score>=90) awards.push("MVP");
+    if(score>=82 && Math.random()<.8) awards.push("골든글러브");
+    if(score>=75 && Math.random()<.65) awards.push("국가대표");
+    if(score>=94 && Math.random()<.35) awards.push("영구결번");
+    S={name:n,club:$("club").value,pos:$("pos").value,num:$("num").value,score,awards,season:1,wins:0,losses:0,fan:70,front:70,playerTrust:70,total:0,roster:[],events:0};
+    $("playerRecord").innerHTML=`<div class="cards"><div class="stat"><div class="muted">선수 시절 종합</div><b>${score}</b></div><div class="stat"><div class="muted">타율 환산</div><b>${avg}</b></div><div class="stat"><div class="muted">포지션</div><b>${S.pos}</b></div><div class="stat"><div class="muted">등번호</div><b>${S.num}</b></div></div><div class="notice">${S.awards.length?S.awards.map(x=>`<span class="tag">${x}</span>`).join(""):"특별 업적 없음"}<br>선수 시절 성적이 감독 커리어의 첫 출발점에 영향을 줍니다.</div>`;
+    let offerCount=score>=85?3:score>=70?2:1;
+    let offers=[];
+    if(score>=85) offers.push(`${S.club} 1군 감독 대행`);
+    if(score>=75) offers.push("다른 KBO 구단 2군 감독");
+    if(score>=60) offers.push("KBO 구단 코치");
+    offers.push(score<75?"대학 감독":"독립야구단 감독");
+    offers=[...new Set(offers)].slice(0,offerCount);
+    $("offers").innerHTML="<b>받은 제안</b><br>"+offers.join("<br>")+"<br><br>직접 지원해서 다른 길을 선택할 수도 있습니다.";
+    $("offerBtns").innerHTML=offers.map((x,i)=>`<button class="btn ${i?"secondary":""}" data-offer="${x}">${x} 선택</button>`).join("")+`<button class="btn secondary" id="selfBtn">직접 지원</button>`;
+    document.querySelectorAll("[data-offer]").forEach(b=>b.onclick=()=>startGame(b.dataset.offer));
+    $("selfBtn").onclick=()=>startGame("직접 지원한 구단");
+    hideAll();$("careerStart").classList.remove("hidden");
+  };
+  function startGame(job){
+    S.job=job;
+    S.roster=names.slice(0,10).map((n,i)=>({name:n,pos:i<5?"타자":i<8?"투수":"내야수",ovr:rand(55,92),cond:rand(65,100)}));
+    S.roster.push({name:"신인 유망주",pos:"외야수",ovr:rand(48,72),cond:85});
+    hideAll();$("game").classList.remove("hidden");$("yearBox").classList.remove("hidden");render();
+    log(`📋 ${job}으로 감독 커리어를 시작했습니다.`);
+  }
+  $("nextBtn").onclick=()=>{
+    match={inning:rand(5,9), ours:rand(0,4), opp:rand(0,4), step:0};
+    hideAll();$("match").classList.remove("hidden");renderMatch();
+  };
+  function renderMatch(){
+    $("matchScore").textContent=`${S.club} ${match.ours} : ${match.opp} 상대팀`;
+    const situations=[
+      "7회말 1점 뒤지고 있습니다. 주자가 1루에 있습니다.",
+      "8회초 동점입니다. 선두타자가 출루했습니다.",
+      "9회말 1점 앞서고 있습니다. 상대 중심타선입니다.",
+      "6회말 2점 앞서고 있습니다. 선발 투수가 90구를 넘겼습니다."
+    ];
+    $("situation").textContent=situations[match.step%4];
+    const opts=[
+      ["투수 교체",()=>{match.opp=Math.max(0,match.opp-1);S.playerTrust=clamp(S.playerTrust+2);finishMatch("투수 교체 성공!");}],
+      ["대타 기용",()=>{match.ours+=Math.random()<.65?1:0;finishMatch("대타 승부를 걸었습니다.")}],
+      ["강공 작전",()=>{match.ours+=Math.random()<.55?1:0;S.fan=clamp(S.fan+2);finishMatch("타자들에게 적극적인 공격을 지시했습니다.")}],
+      ["번트 / 작전",()=>{match.ours+=Math.random()<.48?1:0;S.front=clamp(S.front+1);finishMatch("작전 야구를 선택했습니다.")}]
+    ];
+    $("matchActions").innerHTML=opts.map((o,i)=>`<button class="btn ${i>1?"secondary":""}" data-m="${i}">${o[0]}</button>`).join("");
+    document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>opts[+b.dataset.m][1]());
+  }
+  function finishMatch(msg){
+    if(match.ours>match.opp) S.wins++; else S.losses++;
+    S.total+=match.ours>match.opp?100:40;
+    S.fan=clamp(S.fan+(match.ours>match.opp?3:-4));
+    S.front=clamp(S.front+(match.ours>match.opp?2:-5));
+    log(`${match.ours>match.opp?"🟢 승리":"🔴 패배"} — ${msg}`);
+    if(S.wins+S.losses>=12) finishSeason(); else {hideAll();$("game").classList.remove("hidden");render();}
+  }
+  function finishSeason(){
+    const pct=S.wins/(S.wins+S.losses);
+    const standing=pct>.7?1:pct>.58?3:pct>.48?5:8;
+    S.total+=Math.round(pct*1000)+Math.max(0,9-standing)*80;
+    if(standing<=3 && Math.random()<pct){log("🏆 포스트시즌 진출!"); S.total+=300;}
+    if(S.front<35 || S.fan<25 || S.playerTrust<25 || pct<.25){
+      finishCareer(`성적과 신뢰도 문제로 ${S.season}시즌 후 경질되었습니다.`);
+      return;
+    }
+    if(S.season>=rand(3,5) || Math.random()<.22){
+      finishCareer(`${S.season}시즌을 끝으로 감독 커리어가 마무리되었습니다.`);
+      return;
+    }
+    S.season++;S.wins=0;S.losses=0;S.roster.forEach(p=>{p.ovr=clamp(p.ovr+rand(-2,4),40,99);p.cond=rand(65,100)});
+    log(`📅 ${S.season}시즌 계약 연장! 새로운 시즌이 시작됩니다.`);
+    hideAll();$("game").classList.remove("hidden");render();
+  }
+  function finishCareer(reason){
+    hideAll();$("finish").classList.remove("hidden");$("yearBox").classList.add("hidden");
+    const final=clamp(Math.round(S.total+S.fan*10+S.front*10+S.playerTrust*5),0,99999);
+    $("career").innerHTML=`<div class="notice">${reason}</div><div class="cards" style="margin-top:12px"><div class="stat"><div class="muted">감독 경력</div><b>${S.season}시즌</b></div><div class="stat"><div class="muted">통산 승-패</div><b>${S.wins}-${S.losses}</b></div><div class="stat"><div class="muted">최종 신뢰도</div><b>${Math.round((S.fan+S.front+S.playerTrust)/3)}</b></div><div class="stat"><div class="muted">최종 감독 점수</div><b>${final}</b></div></div><div class="notice"><b>${S.name} 감독의 커리어</b><br>출신: ${S.club} · 선수 포지션: ${S.pos} · 선수 시절 종합 ${S.score}<br>주요 업적: ${S.awards.length?S.awards.join(", "):"없음"}<br>감독 경로: ${S.job}</div>`;
+  }
+  $("eventBtn").onclick=()=>{
+    const e=pick([
+      ["📰 신인 선수의 깜짝 활약","팬 신뢰 +5",()=>S.fan=clamp(S.fan+5)],
+      ["📰 베테랑의 기용 불만","선수 신뢰 -6",()=>S.playerTrust=clamp(S.playerTrust-6)],
+      ["📰 팬들이 작전 실패를 비판","팬 신뢰 -7",()=>S.fan=clamp(S.fan-7)],
+      ["📰 프런트가 감독의 육성을 높게 평가","프런트 신뢰 +6",()=>S.front=clamp(S.front+6)]
+    ]);
+    e[2]();$("managementMsg").innerHTML=`<div class="notice">${e[0]} — ${e[1]}</div>`;render();
+  };
+  $("rookieBtn").onclick=()=>{let p={name:"신인 "+pick(["김","박","이","최"])+pick(["민준","도윤","현우","준혁"]),pos:pick(["투수","내야수","외야수"]),ovr:rand(55,78),cond:90};S.roster.push(p);S.front=clamp(S.front+2);$("managementMsg").innerHTML=`<div class="notice">신인 ${p.name}을(를) 협의 끝에 영입했습니다. 능력 ${p.ovr}.</div>`;render()};
+  $("tradeBtn").onclick=()=>{const p=S.roster[rand(0,S.roster.length-1)];p.ovr=clamp(p.ovr+rand(2,8),40,99);S.fan=clamp(S.fan+2);$("managementMsg").innerHTML=`<div class="notice">${p.name} 관련 트레이드 협상을 진행했습니다. 전력에 변화가 생겼습니다.</div>`;render()};
+  $("restBtn").onclick=()=>{S.roster.forEach(p=>p.cond=clamp(p.cond+rand(5,12)));S.playerTrust=clamp(S.playerTrust+4);$("managementMsg").innerHTML=`<div class="notice">선수단에 휴식을 부여했습니다. 선수 신뢰도가 상승했습니다.</div>`;render()};
+  $("overseasBtn").onclick=()=>{const place=pick(["NPB 구단","MLB 구단","미국 마이너리그"]);S.front=clamp(S.front+5);S.playerTrust=clamp(S.playerTrust+3);$("managementMsg").innerHTML=`<div class="notice">✈️ ${place} 해외연수를 다녀왔습니다. 감독 경험이 쌓였습니다.</div>`;log(`✈️ ${place} 해외연수 완료.`);render()};
+  $("againBtn").onclick=()=>{S=null;hideAll();$("create").classList.remove("hidden");$("yearBox").classList.add("hidden");$("logs").innerHTML=""};
+})();
+</script>
+</body>
+</html>
